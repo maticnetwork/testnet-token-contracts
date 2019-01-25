@@ -1,2 +1,1 @@
-
-## Matic Network (MTX) test token contracts
+## Matic Network (MTX) token contracts

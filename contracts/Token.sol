@@ -9,7 +9,7 @@ import "./TokenVesting.sol";
  * All the operations are done using the smallest and indivisible token unit,
  * just as on Ethereum all the operations are done in wei.
  */
-contract TestMaticToken is ERC20 {
+contract Token is ERC20 {
 
     constructor (string name, string symbol, uint8 decimals, uint256 totalSupply)
     public
