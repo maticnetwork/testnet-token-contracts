@@ -11,7 +11,7 @@ module.exports = {
   networks: {
     local: {
       host: "localhost",
-      port: 8540,
+      port: 8545,
       network_id: "*" // match any network
     },
     kovan: {
