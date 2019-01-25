@@ -2,9 +2,8 @@ require("babel-register")
 require("babel-polyfill")
 
 var HDWalletProvider = require("truffle-hdwallet-provider")
-const MNEMONIC =
-  "clock radar mass judge dismiss just intact mind resemble fringe diary casino" // process.env.MNEMONIC
-const API_KEY = "" //process.env.API_KEY
+const MNEMONIC = process.env.MNEMONIC
+const API_KEY = process.env.API_KEY
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
