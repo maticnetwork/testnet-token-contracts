@@ -3,6 +3,9 @@ pragma solidity ^0.4.24;
 import "./IERC20.sol";
 import "./SafeMath.sol";
 
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/lifecycle/Pausable.sol";
+
 /**
  * @title Standard ERC20 token
  *
@@ -14,7 +17,7 @@ import "./SafeMath.sol";
  * all accounts just by listening to said events. Note that this isn't required by the specification, and other
  * compliant implementations may not do it.
  */
-contract ERC20 is IERC20 {
+contract ERC20 is IERC20, Ownable, Pausable {
     using SafeMath for uint256;
 
     string private _name;
@@ -165,7 +168,7 @@ contract ERC20 is IERC20 {
     * @param to The address to transfer to.
     * @param value The amount to be transferred.
     */
-    function _transfer(address from, address to, uint256 value) internal {
+    function _transfer(address from, address to, uint256 value) internal whenNotPaused {
         require(to != address(0));
 
         _balances[from] = _balances[from].sub(value);

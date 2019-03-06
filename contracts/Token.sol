@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./ERC20.sol";
-import "./TokenVesting.sol";
+// import "./TokenVesting.sol";
 
 /**
  * @title ERC20Detailed token
