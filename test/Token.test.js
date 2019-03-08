@@ -4,69 +4,101 @@ const Token = artifacts.require("./contracts/Token.sol")
 const BigNumber = web3.BigNumber
 const helper = require("./helper")
 
+const packageJSON = require("../package.json")
+
 require("chai")
   .use(require("chai-bignumber")(BigNumber))
   .should()
 
 contract("Token", async accounts => {
-  let owner = accounts[0]
-  beforeEach(async function() {
-    this.token = await Token.new("Matic test", "MTX", 18, 100, { from: owner })
-  })
-
   describe("total supply", function() {
+    let owner = accounts[0]
+    let token
+    let Wallets
+    before(async function() {
+      token = await Token.new("Matic test", "MTX", 18, 100, {
+        from: owner
+      })
+
+      Wallets = helper.generateFirstWallets(packageJSON.config.mnemonics, 10)
+    })
     it("returns the total amount of tokens", async function() {
-      let total = await this.token.totalSupply()
+      let total = await token.totalSupply()
       total = web3.toWei(total)
-      const balance = await this.token.balanceOf(owner)
+      const balance = await token.balanceOf(owner)
       total.should.be.bignumber.equal(balance)
     })
-  })
-
-  describe("transfers", function() {
     it("should test token transfer", async function() {
       const amount = web3.toWei(1)
-      await this.token.transfer(accounts[1], amount)
-      const balance = await this.token.balanceOf(accounts[1])
+      await token.transfer(accounts[1], amount)
+      const balance = await token.balanceOf(accounts[1])
       balance.should.be.bignumber.equal(amount)
     })
-  })
-  //keccak256(abi.encodePacked(address(this), "metaTransfer", to, value, nonce, reward))
-  describe("Meta transactions", function() {
     it("should test token transfer", async function() {
-      const amount = web3.toWei(10)
+      const amount = web3.toWei(5)
       const to = accounts[2]
       const nonce = 0
-      const reward = web3.toWei(0.5)
-      const data = Buffer.concat([
-        ethUtils.toBuffer(this.token.address),
-        ethUtils.toBuffer("metaTransfer"),
-        ethUtils.toBuffer(to),
-        ethUtils.setLengthLeft(amount, 32),
-        ethUtils.setLengthLeft(nonce, 32),
-        ethUtils.setLengthLeft(reward, 32)
-      ])
+      const reward = web3.toWei(2)
+      // const data = Buffer.concat([
+      //   ethUtils.toBuffer(token.address),
+      //   ethUtils.toBuffer("metaTransfer"),
+      //   ethUtils.toBuffer(to),
+      //   ethUtils.setLengthLeft(amount, 32),
+      //   ethUtils.setLengthLeft(nonce, 32),
+      //   ethUtils.setLengthLeft(reward, 32)
+      // ])
+      // const dataHash = ethUtils.bufferToHex(ethUtils.keccak256(data))
+      const sdata = await token.metaTransferHash(to, amount, nonce, reward)
       const sig = helper.getSig({
-        pk: helper.Wallets[0].getPrivateKey(),
-        data: data
+        pk: Wallets[0].getPrivateKeyString(),
+        data: sdata
       })
       //bytes memory signature, address to, uint256 value, uint256 nonce, uint256 reward
-      let out = await this.token.metaTransfer(sig, to, amount, nonce, reward, {
+      await token.metaTransfer(sig, to, amount, nonce, reward, {
         from: accounts[3]
       })
-      console.log(accounts[0])
-      console.log(out)
-      console.log("\n")
-      const balance = await this.token.balanceOf(accounts[0])
-      // balance.should.be.bignumber.equal(amount)
-      console.log(balance)
-      const balance1 = await this.token.balanceOf(accounts[2])
-      // balance.should.be.bignumber.equal(amount)
-      console.log(balance1)
 
-      const balance2 = await this.token.balanceOf(accounts[3])
+      let balance = await token.balanceOf(accounts[2])
       // balance.should.be.bignumber.equal(amount)
-      console.log(balance2)
+      balance = await token.balanceOf(accounts[3])
+      // balance.should.be.bignumber.equal(reward)
+    })
+    it("should test token approve", async function() {
+      const amount = web3.toWei(3)
+      const to = accounts[2]
+      const nonce = 0
+      const reward = web3.toWei(4)
+      // const data = Buffer.concat([
+      //   ethUtils.toBuffer(token.address),
+      //   ethUtils.toBuffer("metaApprove"),
+      //   ethUtils.toBuffer(to),
+      //   ethUtils.setLengthLeft(amount, 32),
+      //   ethUtils.setLengthLeft(nonce, 32),
+      //   ethUtils.setLengthLeft(reward, 32)
+      // ])
+
+      // const dataHash = ethUtils.bufferToHex(ethUtils.keccak256(data))
+      const sdata = await token.metaApproveHash(to, amount, nonce, reward)
+      const sig = helper.getSig({
+        pk: Wallets[0].getPrivateKeyString(),
+        data: sdata
+      })
+      //address spender, uint256 value, uint256 nonce, uint256 reward, bytes memory signature
+      await token.metaApprove(to, amount, nonce, reward, sig, {
+        from: accounts[3]
+      })
+      const allowance = await token.allowance(
+        Wallets[0].getAddressString(),
+        accounts[2]
+      )
+      allowance.should.be.bignumber.equal(amount)
+
+      const balance = await token.balanceOf(accounts[3])
+      balance.should.be.bignumber.equal(reward)
     })
   })
+
+  // describe("transfers", function() {})
+  //keccak256(abi.encodePacked(address(this), "metaTransfer", to, value, nonce, reward))
+  // describe("Meta transactions", function() {})
 })

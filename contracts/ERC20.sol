@@ -182,7 +182,7 @@ contract ERC20 is IERC20 {
         replayNonce[signer]++;
         _transfer(signer, to, value);
         if(reward>0){
-            _transfer(signer, msg.sender, 1);
+            _transfer(signer, msg.sender, reward);
         }
     }
 
@@ -247,9 +247,7 @@ contract ERC20 is IERC20 {
         if (v != 27 && v != 28) {
             return address(0);
         } else {
-            return ecrecover(keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
-            ), v, r, s);
+            return ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)), v, r, s);
         }
     }
 
