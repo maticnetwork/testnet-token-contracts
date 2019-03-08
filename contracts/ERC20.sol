@@ -22,6 +22,8 @@ contract ERC20 is IERC20 {
     uint8 private _decimals;
     
     uint256 private _totalSupply;
+    //Meta TX
+    mapping (address => uint256) public replayNonce;
 
     constructor (string name, string symbol, uint8 decimals, uint256 totalSupply) public {
         _name = name;
@@ -159,6 +161,61 @@ contract ERC20 is IERC20 {
         return true;
     }
 
+    event yo(address signer);
+    //https://github.com/austintgriffith/native-meta-transactions/blob/master/contracts/MetaCoin/MetaCoin.sol
+    /**
+     * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
+     * @param signature Signed Tx from `from` address.
+     * @param to address The address which you want to transfer to
+     * @param value uint256 the amount of tokens to be transferred.
+     * @param nonce uint256 unique value to prevent reply attack
+     * @param reward The amount of tokens for Tx sender.
+     */
+    function metaTransfer(bytes memory signature, address to, uint256 value, uint256 nonce, uint256 reward) public returns (bool) {
+        bytes32 metaHash = metaTransferHash(to,value,nonce,reward);
+        address signer = getSigner(metaHash,signature);
+        emit yo(signer);
+        return true;
+        //make sure signer doesn't come back as 0x0
+        require(signer!=address(0));
+        require(nonce == replayNonce[signer]);
+        replayNonce[signer]++;
+        _transfer(signer, to, value);
+        if(reward>0){
+            _transfer(signer, msg.sender, 1);
+        }
+    }
+
+    function metaTransferHash(address to, uint256 value, uint256 nonce, uint256 reward) public view returns(bytes32){
+        return keccak256(abi.encodePacked(address(this), "metaTransfer", to, value, nonce, reward));
+    }
+
+    /**
+     * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
+     * @param spender address The address which you want to transfer to
+     * @param value uint256 the amount of tokens to be transferred.
+     * @param nonce uint256 unique value to prevent reply attack
+     * @param reward The amount of tokens for Tx sender.
+     * @param signature Signed Tx from `from` address.
+     */
+    function metaApprove(address spender, uint256 value, uint256 nonce, uint256 reward, bytes memory signature) public returns (bool) {
+        require(spender != address(0));
+        bytes32 metaHash = metaApproveHash(spender,value,nonce,reward);
+        address signer = getSigner(metaHash,signature);
+        require(nonce == replayNonce[signer]," Tx already completed");
+        replayNonce[signer]++;
+        _allowed[signer][spender] = value;
+        if( reward > 0) {
+            _transfer(signer, msg.sender, reward);
+        }
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function metaApproveHash(address spender, uint256 value, uint256 nonce, uint256 reward) public view returns(bytes32){
+        return keccak256(abi.encodePacked(address(this), "metaApprove", spender, value, nonce, reward));
+    }
+
     /**
     * @dev Transfer token for a specified addresses
     * @param from The address to transfer from.
@@ -172,5 +229,29 @@ contract ERC20 is IERC20 {
         _balances[to] = _balances[to].add(value);
         emit Transfer(from, to, value);
     }
+    function getSigner(bytes32 _hash, bytes memory _signature) internal pure returns (address){
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        if (_signature.length != 65) {
+            return address(0);
+        }
+        assembly {
+            r := mload(add(_signature, 32))
+            s := mload(add(_signature, 64))
+            v := byte(0, mload(add(_signature, 96)))
+        }
+        if (v < 27) {
+            v += 27;
+        }
+        if (v != 27 && v != 28) {
+            return address(0);
+        } else {
+            return ecrecover(keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)
+            ), v, r, s);
+        }
+    }
+
 
 }

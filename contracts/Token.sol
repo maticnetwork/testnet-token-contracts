@@ -14,7 +14,7 @@ contract Token is ERC20 {
     constructor (string name, string symbol, uint8 decimals, uint256 totalSupply)
     public
     ERC20 (name, symbol, decimals, totalSupply) {
-        _balances[msg.sender] = totalSupply * (10 ** decimals);
+        _balances[msg.sender] = totalSupply * (uint256(10) ** decimals);
 
         // TODO: Add vesting schedule
         // new TokenVesting(beneficiary, start, cliffDuration, duration);
