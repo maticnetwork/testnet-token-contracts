@@ -161,7 +161,6 @@ contract ERC20 is IERC20 {
         return true;
     }
 
-    event yo(address signer);
     //https://github.com/austintgriffith/native-meta-transactions/blob/master/contracts/MetaCoin/MetaCoin.sol
     /**
      * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
@@ -174,8 +173,6 @@ contract ERC20 is IERC20 {
     function metaTransfer(bytes memory signature, address to, uint256 value, uint256 nonce, uint256 reward) public returns (bool) {
         bytes32 metaHash = metaTransferHash(to,value,nonce,reward);
         address signer = getSigner(metaHash,signature);
-        emit yo(signer);
-        return true;
         //make sure signer doesn't come back as 0x0
         require(signer!=address(0));
         require(nonce == replayNonce[signer]);
@@ -189,7 +186,6 @@ contract ERC20 is IERC20 {
     function metaTransferHash(address to, uint256 value, uint256 nonce, uint256 reward) public view returns(bytes32){
         return keccak256(abi.encodePacked(address(this), "metaTransfer", to, value, nonce, reward));
     }
-
     /**
      * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
      * @param spender address The address which you want to transfer to

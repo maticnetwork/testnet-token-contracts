@@ -20,8 +20,8 @@ module.exports = {
   },
   //keccak256(abi.encodePacked(token, "metaTransfer", to, value, nonce, reward))
   getSig: function({ pk, data }) {
-    // const dataHash = ethUtils.keccak256(data)
-    const messageHash = ethUtils.hashPersonalMessage(ethUtils.toBuffer(data))
+    const dataHash = ethUtils.keccak256(data)
+    const messageHash = ethUtils.hashPersonalMessage(dataHash)
     const sigObj = ethUtils.ecsign(messageHash, ethUtils.toBuffer(pk))
     const sig = ethUtils.toRpcSig(sigObj.v, sigObj.r, sigObj.s)
 
