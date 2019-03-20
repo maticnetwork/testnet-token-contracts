@@ -34,7 +34,7 @@ contract("Token", async accounts => {
       const balance = await token.balanceOf(accounts[1])
       balance.should.be.bignumber.equal(amount)
     })
-    it("should test token transfer", async function() {
+    it("should test token meta transfer", async function() {
       const amount = web3.toWei(5)
       const to = accounts[2]
       const nonce = 0
@@ -64,7 +64,7 @@ contract("Token", async accounts => {
       balance = await token.balanceOf(accounts[3])
       balance.should.be.bignumber.equal(reward)
     })
-    it("should test token approve", async function() {
+    it("should test token meta approve", async function() {
       const amount = web3.toWei(5)
       const to = accounts[2]
       const nonce = 1
