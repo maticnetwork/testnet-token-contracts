@@ -1,6 +1,3 @@
-// require("babel-register")
-// require("babel-polyfill")
-
 var HDWalletProvider = require("truffle-hdwallet-provider")
 const MNEMONIC = process.env.MNEMONIC
 const API_KEY = process.env.API_KEY
