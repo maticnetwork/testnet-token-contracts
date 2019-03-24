@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "truffle": "truffle",
-    "truffle:compile": "truffle compile"
+    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000"
   },
   "repository": {
     "type": "git",
@@ -27,8 +27,9 @@
     "babel-preset-stage-3": "^6.24.1",
     "eth-gas-reporter": "0.1.12",
     "ethereumjs-wallet": "0.6.2",
-    "truffle": "5.0.2",
-    "web3": "^1.0.0-beta.30",
+    "truffle": "^5.0.5",
+    "truffle-hdwallet-provider": "^1.0.5",
+    "web3": "^1.0.0-beta.34",
     "chai": "^4.1.2",
     "chai-bignumber": "^2.0.2",
     "coveralls": "^3.0.1",
@@ -41,12 +42,9 @@
     "ethereumjs-util": "6.0.0",
     "ethjs-abi": "^0.2.1",
     "ganache-cli": "6.1.0",
-    "solidity-coverage": "^0.5.4",
-    "solium": "^1.1.8",
     "web3-utils": "^1.0.0-beta.34"
   },
   "dependencies": {
-    "openzeppelin-solidity": "^2.0.0",
-    "truffle-hdwallet-provider": "^1.0.1"
+    "openzeppelin-solidity": "^2.1.2"
   }
 }

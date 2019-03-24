@@ -1,25 +1,19 @@
-pragma solidity ^0.4.24;
+// pragma solidity >=0.4.22 <0.6.0;
+pragma solidity >=0.5.2 <0.6.0;
 
-import "./ERC20.sol";
-import "./TokenVesting.sol";
+import { ERC20 } from "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import { ERC20Detailed } from "openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol";
 
-/**
- * @title ERC20Detailed token
- * @dev The decimals are only for visualization purposes.
- * All the operations are done using the smallest and indivisible token unit,
- * just as on Ethereum all the operations are done in wei.
- */
-contract Token is ERC20 {
+// import "./TokenVesting.sol";
 
-    constructor (string name, string symbol, uint8 decimals, uint256 totalSupply)
+
+contract Token is ERC20, ERC20Detailed {
+    constructor (string memory name, string memory symbol, uint8 decimals, uint256 totalSupply)
     public
-    ERC20 (name, symbol, decimals, totalSupply) {
-        _balances[msg.sender] = totalSupply * (uint256(10) ** decimals);
-
-    // vesting Example
-    // address tokenVesting = new TokenVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, 1552314037, 10, 2);
-    // _transfer(msg.sender, 0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, 100);
-
+    ERC20Detailed (name, symbol, decimals) { 
+        _mint(msg.sender, totalSupply);
+        // vesting Example
+        // address tokenVesting = new TokenVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, 1552314037, 10, 2);
+        // _transfer(msg.sender, 0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, 100);
     }
-
 }
