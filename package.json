@@ -10,10 +10,14 @@
     "type": "git",
     "url": "https://github.com/maticnetwork/token-contracts"
   },
-  "author": "Jaynti Kanani <jdkanani@gmail.com>",
+  "config": {
+    "mnemonics": "clock radar mass judge dismiss just intact mind resemble fringe diary casino"
+  },
+  "author": "Matic Network <matic.network>",
   "license": "MIT",
   "devDependencies": {
     "eslint": "5.9.0",
+    "bip39": "^2.5.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "10.0.1",
     "babel-polyfill": "^6.26.0",
@@ -24,10 +28,24 @@
     "eth-gas-reporter": "0.1.12",
     "ethereumjs-wallet": "0.6.2",
     "truffle": "5.0.2",
-    "web3": "^1.0.0-beta.30"
+    "web3": "^1.0.0-beta.30",
+    "chai": "^4.1.2",
+    "chai-bignumber": "^2.0.2",
+    "coveralls": "^3.0.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-mocha-no-only": "^1.1.0",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "ethereumjs-util": "6.0.0",
+    "ethjs-abi": "^0.2.1",
+    "ganache-cli": "6.1.0",
+    "solidity-coverage": "^0.5.4",
+    "solium": "^1.1.8",
+    "web3-utils": "^1.0.0-beta.34"
   },
   "dependencies": {
-    "ganache-cli": "6.2.4",
     "openzeppelin-solidity": "^2.0.0",
     "truffle-hdwallet-provider": "^1.0.1"
   }

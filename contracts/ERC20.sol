@@ -2,6 +2,8 @@ pragma solidity ^0.4.24;
 
 import "./IERC20.sol";
 import "./SafeMath.sol";
+import "./Pausable.sol";
+
 
 /**
  * @title Standard ERC20 token
@@ -14,7 +16,7 @@ import "./SafeMath.sol";
  * all accounts just by listening to said events. Note that this isn't required by the specification, and other
  * compliant implementations may not do it.
  */
-contract ERC20 is IERC20 {
+contract ERC20 is IERC20, Pausable {
     using SafeMath for uint256;
 
     string private _name;
@@ -22,6 +24,8 @@ contract ERC20 is IERC20 {
     uint8 private _decimals;
     
     uint256 private _totalSupply;
+    //Meta TX
+    mapping (address => uint256) public replayNonce;
 
     constructor (string name, string symbol, uint8 decimals, uint256 totalSupply) public {
         _name = name;
@@ -159,18 +163,91 @@ contract ERC20 is IERC20 {
         return true;
     }
 
+    //https://github.com/austintgriffith/native-meta-transactions/blob/master/contracts/MetaCoin/MetaCoin.sol
+    /**
+     * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
+     * @param signature Signed Tx from `from` address.
+     * @param to address The address which you want to transfer to
+     * @param value uint256 the amount of tokens to be transferred.
+     * @param reward The amount of tokens for Tx sender.
+     */
+    function metaTransfer(bytes memory signature, address to, uint256 value, uint256 nonce, uint256 reward) public whenMetaTxNotPaused returns (bool) {
+        bytes32 metaHash = metaTransferHash(to, value, nonce, reward);
+        address signer = getSigner(metaHash,signature);
+         require(nonce == replayNonce[signer]);
+        //make sure signer doesn't come back as 0x0
+        require(signer != address(0));
+        replayNonce[signer] = replayNonce[signer].add(1);
+        _transfer(signer, to, value);
+        if (reward > 0) {
+            _transfer(signer, msg.sender, reward);
+        }
+    }
+
+    function metaTransferHash(address to, uint256 value, uint256 nonce, uint256 reward) public view returns(bytes32){
+        return keccak256(abi.encodePacked(address(this), "metaTransfer", to, value, nonce, reward));
+    }
+
+    /**
+     * @dev Meta TX Transfer tokens from one address to another where msg.sender can be anyone
+     * @param spender address The address which you want to transfer to
+     * @param value uint256 the amount of tokens to be transferred.
+     * @param reward The amount of tokens for Tx sender.
+     * @param signature Signed Tx from `from` address.
+     */
+    function metaApprove(address spender, uint256 value, uint256 nonce, uint256 reward, bytes memory signature) public whenMetaTxNotPaused returns (bool) {
+        require(spender != address(0));
+        bytes32 metaHash = metaApproveHash(spender, value, nonce, reward);
+        address signer = getSigner(metaHash,signature);
+        require(nonce == replayNonce[signer]);
+        replayNonce[signer] = replayNonce[signer].add(1);
+        _allowed[signer][spender] = value;
+        if( reward > 0) {
+            _transfer(signer, msg.sender, reward);
+        }
+        emit Approval(msg.sender, spender, value);
+        return true;
+    }
+
+    function metaApproveHash(address spender, uint256 value, uint256 nonce, uint256 reward) public view returns(bytes32){
+        return keccak256(abi.encodePacked(address(this), "metaApprove", spender, value, nonce, reward));
+    }
+
     /**
     * @dev Transfer token for a specified addresses
     * @param from The address to transfer from.
     * @param to The address to transfer to.
     * @param value The amount to be transferred.
     */
-    function _transfer(address from, address to, uint256 value) internal {
+    function _transfer(address from, address to, uint256 value) internal whenNotPaused {
         require(to != address(0));
 
         _balances[from] = _balances[from].sub(value);
         _balances[to] = _balances[to].add(value);
         emit Transfer(from, to, value);
     }
+
+    function getSigner(bytes32 _hash, bytes memory _signature) internal pure returns (address){
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        if (_signature.length != 65) {
+            return address(0);
+        }
+        assembly {
+            r := mload(add(_signature, 32))
+            s := mload(add(_signature, 64))
+            v := byte(0, mload(add(_signature, 96)))
+        }
+        if (v < 27) {
+            v += 27;
+        }
+        if (v != 27 && v != 28) {
+            return address(0);
+        } else {
+            return ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", _hash)), v, r, s);
+        }
+    }
+
 
 }
