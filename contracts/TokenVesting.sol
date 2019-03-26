@@ -21,14 +21,19 @@ contract TokenVesting is Ownable {
     uint256 internal vestingId = 0;
 
     struct vesting {
-        address beneficiary;
         uint256 releaseTime;
         uint256 amount;
+        address beneficiary;
+        bool released;
     }
     mapping(uint256 => vesting) public vestings;
 
-    event TokensReleased(address beneficiary, uint256 amount);
-    event TokensVesting(address beneficiary, uint256 amount);
+    event TokensReleased(address indexed beneficiary, uint256 indexed _vestingId, uint256 amount);
+    event TokensVesting(address indexed beneficiary, uint256 indexed _vestingId, uint256 amount);
+
+    constructor (IERC20 token) public {
+        _token = token;
+    }
 
     function token() public view returns (IERC20) {
         return _token;
@@ -47,24 +52,25 @@ contract TokenVesting is Ownable {
     }
 
     function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public { // onlyOwner
-        _vestingId = _vestingId + 1;
-        _token.safeTransferFrom(_beneficiary, address(this), _amount);
-        vestings[_vestingId] = vesting({
+        vestingId = vestingId + 1;
+        _token.safeTransferFrom(msg.sender, address(this), _amount);
+        vestings[vestingId] = vesting({
             beneficiary: _beneficiary,
             releaseTime: _releaseTime,
-            amount: _amount
+            amount: _amount,
+            released: false
         });
-        emit TokensVesting(_beneficiary, _amount);
+        emit TokensVesting(_beneficiary, vestingId, _amount);
     }
 
     function release(uint256 _vestingId) public {
         // solhint-disable-next-line not-rely-on-time
         require(block.timestamp >= vestings[_vestingId].releaseTime);
+        require(!vestings[_vestingId].released);
 
         require(_token.balanceOf(address(this)) > 0);
-
+        vestings[_vestingId].released = true;
         _token.safeTransfer(vestings[_vestingId].beneficiary, vestings[_vestingId].amount);
-        emit TokensReleased(vestings[_vestingId].beneficiary, vestings[_vestingId].amount);
-        delete vestings[_vestingId];
+        emit TokensReleased(vestings[_vestingId].beneficiary,_vestingId, vestings[_vestingId].amount);
     }
 }
