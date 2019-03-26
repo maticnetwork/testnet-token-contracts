@@ -51,9 +51,8 @@ contract TokenVesting is Ownable {
         return vestings[_vestingId].amount;
     }
 
-    function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public { // onlyOwner
+    function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public onlyOwner {
         vestingId = vestingId + 1;
-        _token.safeTransferFrom(msg.sender, address(this), _amount);
         vestings[vestingId] = vesting({
             beneficiary: _beneficiary,
             releaseTime: _releaseTime,
@@ -65,8 +64,8 @@ contract TokenVesting is Ownable {
 
     function release(uint256 _vestingId) public {
         // solhint-disable-next-line not-rely-on-time
+        require(vestings[_vestingId].beneficiary != address(0x0) && !vestings[_vestingId].released);
         require(block.timestamp >= vestings[_vestingId].releaseTime);
-        require(!vestings[_vestingId].released);
 
         require(_token.balanceOf(address(this)) > 0);
         vestings[_vestingId].released = true;
