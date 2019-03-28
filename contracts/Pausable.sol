@@ -1,7 +1,7 @@
-pragma solidity ^0.4.24;
+// pragma solidity >=0.4.22 <0.6.0;
+pragma solidity >=0.5.2 <0.6.0;
 
-import "./Ownable.sol";
-
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract Pausable is Ownable {
   bool public paused;

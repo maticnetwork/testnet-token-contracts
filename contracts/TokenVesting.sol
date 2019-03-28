@@ -1,10 +1,11 @@
-/* solium-disable security/no-block-members */
+// pragma solidity >=0.4.22 <0.6.0;
+pragma solidity >=0.5.2 <0.6.0;
 
-pragma solidity ^0.4.24;
+import { Ownable } from "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import { SafeMath } from "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import { IERC20 } from "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 
-import "./SafeERC20.sol";
-import "./Ownable.sol";
-import "./SafeMath.sol";
 
 /**
  * @title TokenVesting
@@ -16,112 +17,59 @@ contract TokenVesting is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    event TokensReleased(address token, uint256 amount);
-    event TokenVestingRevoked(address token);
+    IERC20 private _token;
+    uint256 internal vestingId = 0;
 
-    // beneficiary of tokens after they are released
-    address private _beneficiary;
+    struct vesting {
+        uint256 releaseTime;
+        uint256 amount;
+        address beneficiary;
+        bool released;
+    }
+    mapping(uint256 => vesting) public vestings;
 
-    uint256 private _cliff;
-    uint256 private _start;
-    uint256 private _duration;
+    event TokensReleased(address indexed beneficiary, uint256 indexed _vestingId, uint256 amount);
+    event TokensVesting(address indexed beneficiary, uint256 indexed _vestingId, uint256 amount);
 
-    mapping (address => uint256) private _released;
-
-    /**
-     * @dev Creates a vesting contract that vests its balance of any ERC20 token to the
-     * beneficiary, gradually in a linear fashion until start + duration. By then all
-     * of the balance will have vested.
-     * @param beneficiary address of the beneficiary to whom vested tokens are transferred
-     * @param cliffDuration duration in seconds of the cliff in which tokens will begin to vest
-     * @param start the time (as Unix time) at which point vesting starts
-     * @param duration duration in seconds of the period in which the tokens will vest
-     */
-    constructor (address beneficiary, uint256 start, uint256 cliffDuration, uint256 duration) public {
-        require(beneficiary != address(0));
-        require(cliffDuration <= duration);
-        require(duration > 0);
-        require(start.add(duration) > block.timestamp);
-
-        _beneficiary = beneficiary;
-        _duration = duration;
-        _cliff = start.add(cliffDuration);
-        _start = start;
+    constructor (IERC20 token) public {
+        _token = token;
     }
 
-    /**
-     * @return the beneficiary of the tokens.
-     */
-    function beneficiary() public view returns (address) {
-        return _beneficiary;
+    function token() public view returns (IERC20) {
+        return _token;
     }
 
-    /**
-     * @return the cliff time of the token vesting.
-     */
-    function cliff() public view returns (uint256) {
-        return _cliff;
+    function beneficiary(uint256 _vestingId) public view returns (address) {
+        return vestings[_vestingId].beneficiary;
     }
 
-    /**
-     * @return the start time of the token vesting.
-     */
-    function start() public view returns (uint256) {
-        return _start;
+    function releaseTime(uint256 _vestingId) public view returns (uint256) {
+        return vestings[_vestingId].releaseTime;
     }
 
-    /**
-     * @return the duration of the token vesting.
-     */
-    function duration() public view returns (uint256) {
-        return _duration;
+    function vestingAmount(uint256 _vestingId) public view returns (uint256) {
+        return vestings[_vestingId].amount;
     }
 
-    /**
-     * @return the amount of the token released.
-     */
-    function released(address token) public view returns (uint256) {
-        return _released[token];
+    function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public onlyOwner {
+        vestingId = vestingId + 1;
+        vestings[vestingId] = vesting({
+            beneficiary: _beneficiary,
+            releaseTime: _releaseTime,
+            amount: _amount,
+            released: false
+        });
+        emit TokensVesting(_beneficiary, vestingId, _amount);
     }
 
-    /**
-     * @notice Transfers vested tokens to beneficiary.
-     * @param token ERC20 token which is being vested
-     */
-    function release(IERC20 token) public {
-        uint256 unreleased = _releasableAmount(token);
+    function release(uint256 _vestingId) public {
+        // solhint-disable-next-line not-rely-on-time
+        require(vestings[_vestingId].beneficiary != address(0x0) && !vestings[_vestingId].released);
+        require(block.timestamp >= vestings[_vestingId].releaseTime);
 
-        require(unreleased > 0);
-
-        _released[token] = _released[token].add(unreleased);
-
-        token.safeTransfer(_beneficiary, unreleased);
-
-        emit TokensReleased(token, unreleased);
-    }
-
-    /**
-     * @dev Calculates the amount that has already vested but hasn't been released yet.
-     * @param token ERC20 token which is being vested
-     */
-    function _releasableAmount(IERC20 token) private view returns (uint256) {
-        return _vestedAmount(token).sub(_released[token]);
-    }
-
-    /**
-     * @dev Calculates the amount that has already vested.
-     * @param token ERC20 token which is being vested
-     */
-    function _vestedAmount(IERC20 token) private view returns (uint256) {
-        uint256 currentBalance = token.balanceOf(address(this));
-        uint256 totalBalance = currentBalance.add(_released[token]);
-
-        if (block.timestamp < _cliff) {
-            return 0;
-        } else if (block.timestamp >= _start.add(_duration)) {
-            return totalBalance;
-        } else {
-            return totalBalance.mul(block.timestamp.sub(_start)).div(_duration);
-        }
+        require(_token.balanceOf(address(this)) > 0);
+        vestings[_vestingId].released = true;
+        _token.safeTransfer(vestings[_vestingId].beneficiary, vestings[_vestingId].amount);
+        emit TokensReleased(vestings[_vestingId].beneficiary,_vestingId, vestings[_vestingId].amount);
     }
 }
