@@ -1,4 +1,4 @@
-## Matic (MTX) testnet token contracts
+## Matic (MATIC) testnet token contracts
 
 Details:  
 Name: Testnet Matic  
