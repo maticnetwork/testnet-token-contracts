@@ -2,7 +2,7 @@
 
 Details:  
 Name: Testnet Matic  
-Symbol: MTX  
+Symbol: MATIC
 Decimals: 18  
 Total Supply: 10,000,000,000
 
