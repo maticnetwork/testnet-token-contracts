@@ -17,8 +17,8 @@ contract TokenVesting is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 private _token;
-    uint256 internal vestingId = 0;
+    IERC20 public _token;
+    uint256 public vestingId = 0;
 
     struct vesting {
         uint256 releaseTime;
