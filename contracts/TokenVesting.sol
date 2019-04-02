@@ -52,7 +52,7 @@ contract TokenVesting is Ownable {
     }
 
     function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public onlyOwner {
-        vestingId = vestingId + 1;
+        vestingId = vestingId.add(1);
         vestings[vestingId] = vesting({
             beneficiary: _beneficiary,
             releaseTime: _releaseTime,
@@ -70,6 +70,6 @@ contract TokenVesting is Ownable {
         require(_token.balanceOf(address(this)) > 0);
         vestings[_vestingId].released = true;
         _token.safeTransfer(vestings[_vestingId].beneficiary, vestings[_vestingId].amount);
-        emit TokensReleased(vestings[_vestingId].beneficiary,_vestingId, vestings[_vestingId].amount);
+        emit TokensReleased(vestings[_vestingId].beneficiary, _vestingId, vestings[_vestingId].amount);
     }
 }

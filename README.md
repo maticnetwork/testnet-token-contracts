@@ -1,8 +1,8 @@
-## Matic (MTX) testnet token contracts
+## Matic (MATIC) testnet token contracts
 
 Details:  
 Name: Testnet Matic  
-Symbol: MTX  
+Symbol: MATIC
 Decimals: 18  
 Total Supply: 10,000,000,000
 
