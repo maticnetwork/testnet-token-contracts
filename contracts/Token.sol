@@ -1,4 +1,3 @@
-// pragma solidity >=0.4.22 <0.6.0;
 pragma solidity >=0.5.2 <0.6.0;
 
 import { ERC20Pausable } from "openzeppelin-solidity/contracts/token/ERC20/ERC20Pausable.sol";
