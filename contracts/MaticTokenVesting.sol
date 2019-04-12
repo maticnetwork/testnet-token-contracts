@@ -39,7 +39,7 @@ contract MaticTokenVesting is Ownable {
     event TokenVestingRemoved(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
 
     constructor(IERC20 _token) public {
-        require(address(_token) != address(0x0), "Matic Token isn't deployed");
+        require(address(_token) != address(0x0), "Matic token address is not valid");
         maticToken = _token;
         // test data
         uint256 SCALING_FACTOR = 10 ** 18;
