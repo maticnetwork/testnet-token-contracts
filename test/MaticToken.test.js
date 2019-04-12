@@ -1,4 +1,4 @@
-const Token = artifacts.require("./contracts/Token.sol")
+const Token = artifacts.require("./contracts/MaticToken.sol")
 const BigNumber = web3.utils.BigNumber
 
 const toWei = web3.utils.toWei

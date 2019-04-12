@@ -1,5 +1,5 @@
-const Token = artifacts.require("./contracts/Token.sol")
-const Vesting = artifacts.require("./contracts/TokenVesting.sol")
+const Token = artifacts.require("./contracts/MaticToken.sol")
+const Vesting = artifacts.require("./contracts/MaticTokenVesting.sol")
 const BigNumber = web3.utils.BigNumber
 
 const toWei = web3.utils.toWei
@@ -25,6 +25,21 @@ async function mineOneBlock() {
   )
 }
 
+async function assertRevert(promise) {
+  try {
+    const tx = await promise
+    const receipt = await web3.eth.getTransactionReceipt(tx.tx)
+    if (receipt.gasUsed >= 6700000) {
+      return
+    }
+  } catch (error) {
+    const invalidOpcode = error.message.search("revert") >= 0
+    assert(invalidOpcode, "Expected revert, got '" + error + "' instead")
+    return
+  }
+  assert.ok(false, 'Error containing "revert" must be returned')
+}
+
 require("chai")
   .use(require("chai-bignumber")(BigNumber))
   .should()
@@ -33,9 +48,12 @@ contract("Token", async accounts => {
   let owner = accounts[0]
   let token
   let vesting
+  let totalSupply
 
   before(async function() {
-    token = await Token.new("Matic test", "MATIC", 18, toWei("100"), {
+    totalSupply = web3.utils.toBN(10000000000)
+    totalSupply = totalSupply.mul(web3.utils.toBN(10 ** 18))
+    token = await Token.new("Matic test", "MATIC", 18, totalSupply, {
       from: owner
     })
     const total = await token.totalSupply.call()
@@ -44,66 +62,85 @@ contract("Token", async accounts => {
   })
 
   describe("Token Vesting", function() {
-    it("should add vesting for user1 ", async function() {
-      const amount = toWei("10")
-      let block = await web3.eth.getBlock("latest")
-      let blockTime = block.timestamp
-      let time = new Date(blockTime)
-      time.setMinutes(time.getMinutes() + 6)
-      time = +time
-
-      await vesting.addVesting(accounts[1], "" + time, amount, { from: owner })
-    })
-
-    it("should add vesting for user2", async function() {
-      const amount = toWei("10")
-      let block = await web3.eth.getBlock("latest")
-      let blockTime = block.timestamp
-      let time = new Date(blockTime)
-      time.setMinutes(time.getMinutes() + 6)
-      time = +time
-
-      await vesting.addVesting(accounts[2], "" + time, amount, { from: owner })
-    })
-
-    it("should add vesting for user3", async function() {
-      const amount = toWei("80")
-      let block = await web3.eth.getBlock("latest")
-      let blockTime = block.timestamp
-      let time = new Date(blockTime)
-      time.setMinutes(time.getMinutes() + 6)
-      time = +time
-      await vesting.addVesting(accounts[3], "" + time, amount, { from: owner })
-    })
-
-    it("should test token vesting for user1", async function() {
-      let seconds = 60 * 6000
-      await increaseBlockTime(seconds)
-      await mineOneBlock()
-
-      const amount = toWei("10")
+    it("should test vesting for day zero release time", async function() {
+      const vestingContractBalance = await token.balanceOf.call(vesting.address)
+      assert.equal(vestingContractBalance.toString(), totalSupply.toString())
+      let balance = await token.balanceOf.call(accounts[0])
+      assert.equal(balance.toString(), "0")
+      let amount = toWei("1900000000")
       await vesting.release(1)
-      const balance = await token.balanceOf.call(accounts[1])
+      balance = await token.balanceOf.call(accounts[0])
+      assert.equal(balance.toString(), amount.toString())
+      amount = toWei((117990560 + 1900000000).toString())
+      await vesting.release(2)
+      balance = await token.balanceOf.call(accounts[0])
       assert.equal(balance.toString(), amount.toString())
     })
 
-    it("should test token vesting for user1", async function() {
+    it("should test token vesting for userX", async function() {
+      const amount = toWei("10")
+      let block = await web3.eth.getBlock("latest")
+      let blockTime = block.timestamp
+      let time = new Date(blockTime)
+      time.setMinutes(time.getMinutes() + 6)
+      time = +time
+      await vesting.addVesting(accounts[1], time.toString(), amount, {
+        from: accounts[0]
+      })
+      await token.transfer(vesting.address, amount)
+      const balance = await vesting.vestingAmount(28)
+      assert.equal(balance.toString(), amount.toString())
+    })
+
+    it("Removing a vesting entry with the owner account", async function() {
+      let result = await vesting.removeVesting(3, { from: owner })
+      await vesting.retrieveExcessTokens(result.receipt.logs[0].args["2"], {
+        from: owner
+      })
+    })
+
+    it("Removing a vesting entry with a non-owner account", async function() {
+      await assertRevert(vesting.removeVesting(3, { from: accounts[1] }))
+    })
+
+    it("Trying to remove an unexistent vesting entry", async function() {
+      await assertRevert(vesting.removeVesting(30, { from: owner }))
+    })
+
+    it("Trying to remove an already released vesting entry", async function() {
+      await assertRevert(vesting.release(1, { from: owner }))
+    })
+
+    it("Trying to remove an already removed vesting entry", async function() {
+      await assertRevert(vesting.removeVesting(30, { from: owner }))
+    })
+
+    it("Trying to add a vesting entry from a non-owner account", async function() {
+      const amount = toWei("10")
+      let block = await web3.eth.getBlock("latest")
+      let blockTime = block.timestamp
+      let time = new Date(blockTime)
+      time.setMinutes(time.getMinutes() + 6)
+      time = +time
+      await assertRevert(
+        vesting.addVesting(accounts[1], "" + time, amount, {
+          from: accounts[1]
+        })
+      )
+    })
+
+    it("Trying to release the tokens associated with existing vesting entry", async function() {
+      let amount = await token.balanceOf(vesting.address)
+      await assertRevert(vesting.retrieveExcessTokens(amount, { from: owner }))
+    })
+
+    it("should test token vesting for userX1", async function() {
       let seconds = 60 * 6000
       await increaseBlockTime(seconds)
       await mineOneBlock()
       const amount = toWei("10")
-      await vesting.release(2)
-      const balance = await token.balanceOf.call(accounts[2])
-      assert.equal(balance.toString(), amount.toString())
-    })
-
-    it("should test token vesting for user1", async function() {
-      let seconds = 60 * 6000
-      await increaseBlockTime(seconds)
-      await mineOneBlock()
-      const amount = toWei("80")
-      await vesting.release(3)
-      const balance = await token.balanceOf.call(accounts[3])
+      await vesting.release(28)
+      const balance = await token.balanceOf.call(accounts[1])
       assert.equal(balance.toString(), amount.toString())
     })
   })
