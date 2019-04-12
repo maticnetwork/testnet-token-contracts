@@ -21,7 +21,7 @@
     "bip39": "2.5.0",
     "eth-decoder": "0.0.1-beta.2",
     "eth-gas-reporter": "0.1.12",
-    "eth-sig-util": "^2.1.1",
+    "eth-sig-util": "2.1.1",
     "ethereumjs-util": "6.1.0",
     "ethereumjs-wallet": "0.6.3",
     "ganache-cli": "6.3.0",
