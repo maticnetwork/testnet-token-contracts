@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000",
     "truffle": "truffle",
-    "truffle:deploy": "truffle deploy",
-    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000"
+    "truffle:test": " truffle test test/*.test.js",
+    "truffle:deploy": "truffle deploy"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "chai-bignumber": "^3.0.0"
+    "chai-bignumber": "^3.0.0",
+    "ganache-cli": "6.2.4"
   }
 }
