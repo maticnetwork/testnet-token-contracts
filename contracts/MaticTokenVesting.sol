@@ -36,7 +36,7 @@ contract MaticTokenVesting is Ownable {
 
     constructor(IERC20 _token) public {
         maticToken = _token;
-        //test data
+        // test data
         uint256 SCALING_FACTOR = 10 ** 18;
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 0, 1900000000 * SCALING_FACTOR);
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 0, 117990560 * SCALING_FACTOR);
@@ -88,14 +88,13 @@ contract MaticTokenVesting is Ownable {
         require(vesting.beneficiary != address(0x0), "INVALID_VESTING_ID");
         require(!vesting.released , "VESTING_ALREADY_RELEASED");
         vesting.released = true;
-        tokensToVest -= vesting.amount;
+        tokensToVest = tokensToVest.sub(vesting.amount);
         emit TokensVestingRemoved(_vestingId);
     }
 
     function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public onlyOwner {
         require(_beneficiary != address(0x0), "INVALID_BENEFICIARY_ADDRESS");
-        require(maticToken.balanceOf(address(this)) >= tokensToVest + _amount, INSUFFICIENT_BALANCE);
-        tokensToVest += _amount;
+        tokensToVest = tokensToVest.add(_amount);
         vestingId = vestingId.add(1);
         vestings[vestingId] = Vesting({
             beneficiary: _beneficiary,
@@ -120,7 +119,7 @@ contract MaticTokenVesting is Ownable {
     }
 
     function retrieveExcessTokens(uint256 _amount) public onlyOwner {
-      require(_amount <= maticToken.balanceOf(address(this)) - tokensToVest, INSUFFICIENT_BALANCE);
+      require(_amount <= maticToken.balanceOf(address(this)).sub(tokensToVest), INSUFFICIENT_BALANCE);
       maticToken.safeTransfer(owner(), _amount);
     }
 }
