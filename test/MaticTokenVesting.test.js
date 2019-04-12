@@ -198,5 +198,19 @@ contract("Token", async accounts => {
       let amount = await token.balanceOf(vesting.address)
       await assertRevert(vesting.retrieveExcessTokens(amount, { from: owner }))
     })
+
+    it("should test token vesting for amount exactly equal to the balance of vesting contract", async function() {
+      let p = []
+      for (let i = 4; i < 27; i++) {
+        p.push(vesting.release(i))
+      }
+      await Promise.all(p)
+      let balanceOfVesting = await token.balanceOf(vesting.address)
+      const vestingAmount = await vesting.vestingAmount(27)
+      assert.equal(balanceOfVesting.toString(), vestingAmount.toString())
+      await vesting.release(27)
+      balanceOfVesting = await token.balanceOf(vesting.address)
+      assert.equal(balanceOfVesting.toString(), "0")
+    })
   })
 })
