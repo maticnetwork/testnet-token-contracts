@@ -39,6 +39,7 @@ contract MaticTokenVesting is Ownable {
     event TokenVestingRemoved(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
 
     constructor(IERC20 _token) public {
+        require(address(_token) != address(0x0), "Matic Token isn't deployed");
         maticToken = _token;
         // test data
         uint256 SCALING_FACTOR = 10 ** 18;
@@ -69,6 +70,8 @@ contract MaticTokenVesting is Ownable {
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 30, 266666666 * SCALING_FACTOR);
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 36, 266666666 * SCALING_FACTOR);
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 42, 266666666 * SCALING_FACTOR);
+        addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 0, 1999999884 * SCALING_FACTOR);
+        tokensToVest = maticToken.totalSupply();
     }
 
     function token() public view returns (IERC20) {
