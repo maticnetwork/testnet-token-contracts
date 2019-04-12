@@ -20,7 +20,11 @@ contract MaticTokenVesting is Ownable {
     uint256 private tokensToVest = 0;
     uint256 private vestingId = 0;
 
-    string private constant INSUFFICIENT_BALANCE = "INSUFFICIENT_BALANCE";
+    string private constant INSUFFICIENT_BALANCE = "Insufficient balance";
+    string private constant INVALID_VESTING_ID = "Invalid vesting id";
+    string private constant VESTING_ALREADY_RELEASED = "Vesting already released";
+    string private constant INVALID_BENEFICIARY = "Invalid beneficiary address";
+    string private constant NOT_VESTED = "Tokens have not vested yet";
 
     struct Vesting {
         uint256 releaseTime;
@@ -30,9 +34,9 @@ contract MaticTokenVesting is Ownable {
     }
     mapping(uint256 => Vesting) public vestings;
 
-    event TokensReleased(address indexed beneficiary, uint256 indexed vestingId, uint256 amount);
-    event TokensVesting(address indexed beneficiary, uint256 indexed vestingId, uint256 amount);
-    event TokensVestingRemoved(uint256 indexed vestingId);
+    event TokenVestingReleased(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
+    event TokenVestingAdded(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
+    event TokenVestingRemoved(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
 
     constructor(IERC20 _token) public {
         maticToken = _token;
@@ -85,15 +89,15 @@ contract MaticTokenVesting is Ownable {
 
     function removeVesting(uint256 _vestingId) public onlyOwner {
         Vesting storage vesting = vestings[_vestingId];
-        require(vesting.beneficiary != address(0x0), "INVALID_VESTING_ID");
-        require(!vesting.released , "VESTING_ALREADY_RELEASED");
+        require(vesting.beneficiary != address(0x0), INVALID_VESTING_ID);
+        require(!vesting.released , VESTING_ALREADY_RELEASED);
         vesting.released = true;
         tokensToVest = tokensToVest.sub(vesting.amount);
-        emit TokensVestingRemoved(_vestingId);
+        emit TokenVestingRemoved(_vestingId, vesting.beneficiary, vesting.amount);
     }
 
     function addVesting(address _beneficiary, uint256 _releaseTime, uint256 _amount) public onlyOwner {
-        require(_beneficiary != address(0x0), "INVALID_BENEFICIARY_ADDRESS");
+        require(_beneficiary != address(0x0), INVALID_BENEFICIARY);
         tokensToVest = tokensToVest.add(_amount);
         vestingId = vestingId.add(1);
         vestings[vestingId] = Vesting({
@@ -102,20 +106,20 @@ contract MaticTokenVesting is Ownable {
             amount: _amount,
             released: false
         });
-        emit TokensVesting(_beneficiary, vestingId, _amount);
+        emit TokenVestingAdded(vestingId, _beneficiary, _amount);
     }
 
     function release(uint256 _vestingId) public {
         Vesting storage vesting = vestings[_vestingId];
         // solhint-disable-next-line not-rely-on-time
-        require(vesting.beneficiary != address(0x0), "INVALID_VESTING_ID");
-        require(!vesting.released , "VESTING_ALREADY_RELEASED");
-        require(block.timestamp >= vesting.releaseTime, "TOO_EARLY_TO_RELEASE_VESTING");
+        require(vesting.beneficiary != address(0x0), INVALID_VESTING_ID);
+        require(!vesting.released , VESTING_ALREADY_RELEASED);
+        require(block.timestamp >= vesting.releaseTime, NOT_VESTED);
 
         require(maticToken.balanceOf(address(this)) >= vesting.amount, INSUFFICIENT_BALANCE);
         vesting.released = true;
         maticToken.safeTransfer(vesting.beneficiary, vesting.amount);
-        emit TokensReleased(vesting.beneficiary, _vestingId, vesting.amount);
+        emit TokenVestingReleased(_vestingId, vesting.beneficiary, vesting.amount);
     }
 
     function retrieveExcessTokens(uint256 _amount) public onlyOwner {
