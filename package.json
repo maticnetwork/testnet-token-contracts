@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000",
     "truffle": "truffle",
-    "truffle:deploy": "truffle deploy",
-    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000"
+    "truffle:test": " truffle test test/*.test.js",
+    "truffle:deploy": "truffle deploy"
   },
   "repository": {
     "type": "git",
@@ -17,19 +18,20 @@
   "author": "Matic Network <matic.network>",
   "license": "MIT",
   "dependencies": {
-    "bip39": "^2.5.0",
+    "bip39": "2.5.0",
     "eth-decoder": "0.0.1-beta.2",
-    "eth-gas-reporter": "^0.1.12",
-    "eth-sig-util": "^2.1.1",
-    "ethereumjs-util": "^6.1.0",
-    "ethereumjs-wallet": "^0.6.3",
-    "ganache-cli": "^6.3.0",
-    "openzeppelin-solidity": "^2.1.2",
-    "truffle": "^5.0.5",
-    "truffle-hdwallet-provider": "^1.0.5"
+    "eth-gas-reporter": "0.1.12",
+    "eth-sig-util": "2.1.1",
+    "ethereumjs-util": "6.1.0",
+    "ethereumjs-wallet": "0.6.3",
+    "ganache-cli": "6.3.0",
+    "openzeppelin-solidity": "2.1.2",
+    "truffle": "5.0.5",
+    "truffle-hdwallet-provider": "1.0.5"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "chai-bignumber": "^3.0.0"
+    "chai-bignumber": "^3.0.0",
+    "ganache-cli": "6.2.4"
   }
 }
