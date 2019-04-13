@@ -39,6 +39,7 @@ contract MaticTokenVesting is Ownable {
     event TokenVestingRemoved(uint256 indexed vestingId, address indexed beneficiary, uint256 amount);
 
     constructor(IERC20 _token) public {
+        require(address(_token) != address(0x0), "Matic token address is not valid");
         maticToken = _token;
         // test data
         uint256 SCALING_FACTOR = 10 ** 18;
@@ -67,8 +68,8 @@ contract MaticTokenVesting is Ownable {
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 18, 266666666 * SCALING_FACTOR);
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 24, 266666666 * SCALING_FACTOR);
         addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 30, 266666666 * SCALING_FACTOR);
-        addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 36, 266666666 * SCALING_FACTOR);
-        addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 42, 266666666 * SCALING_FACTOR);
+        addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 36, 266666600 * SCALING_FACTOR);
+        addVesting(0x9fB29AAc15b9A4B7F17c3385939b007540f4d791, now + 42, 266666616 * SCALING_FACTOR);
     }
 
     function token() public view returns (IERC20) {
@@ -111,19 +112,20 @@ contract MaticTokenVesting is Ownable {
 
     function release(uint256 _vestingId) public {
         Vesting storage vesting = vestings[_vestingId];
-        // solhint-disable-next-line not-rely-on-time
         require(vesting.beneficiary != address(0x0), INVALID_VESTING_ID);
         require(!vesting.released , VESTING_ALREADY_RELEASED);
+        // solhint-disable-next-line not-rely-on-time
         require(block.timestamp >= vesting.releaseTime, NOT_VESTED);
 
         require(maticToken.balanceOf(address(this)) >= vesting.amount, INSUFFICIENT_BALANCE);
         vesting.released = true;
+        tokensToVest = tokensToVest.sub(vesting.amount);
         maticToken.safeTransfer(vesting.beneficiary, vesting.amount);
         emit TokenVestingReleased(_vestingId, vesting.beneficiary, vesting.amount);
     }
 
     function retrieveExcessTokens(uint256 _amount) public onlyOwner {
-      require(_amount <= maticToken.balanceOf(address(this)).sub(tokensToVest), INSUFFICIENT_BALANCE);
-      maticToken.safeTransfer(owner(), _amount);
+        require(_amount <= maticToken.balanceOf(address(this)).sub(tokensToVest), INSUFFICIENT_BALANCE);
+        maticToken.safeTransfer(owner(), _amount);
     }
 }

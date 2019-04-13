@@ -1,5 +1,5 @@
-const Token = artifacts.require("./Token.sol")
-const TokenVesting = artifacts.require("./TokenVesting.sol")
+const Token = artifacts.require("./MaticToken.sol")
+const TokenVesting = artifacts.require("./MaticTokenVesting.sol")
 
 module.exports = async function(deployer) {
   deployer.then(async () => {
