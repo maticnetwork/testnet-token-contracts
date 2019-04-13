@@ -54,12 +54,10 @@ contract("Token", async accounts => {
   let owner = accounts[0]
   let token
   let vesting
-  let totalSupply
+  let totalSupply = web3.utils.toBN(10000000000).mul(web3.utils.toBN(10 ** 18))
 
   describe("Token Vesting", function() {
     beforeEach(async function() {
-      totalSupply = web3.utils.toBN(10000000000)
-      totalSupply = totalSupply.mul(web3.utils.toBN(10 ** 18))
       token = await Token.new("Matic test", "MATIC", 18, totalSupply, {
         from: owner
       })
@@ -122,9 +120,15 @@ contract("Token", async accounts => {
 
     it("Removing a vesting entry with the owner account", async function() {
       let result = await vesting.removeVesting(3, { from: owner })
-      await vesting.retrieveExcessTokens(result.receipt.logs[0].args["2"], {
+      const excessTokens = result.receipt.logs[0].args["2"]
+      let balance = await token.balanceOf.call(owner)
+      assert.equal(balance.toString(), '0')
+
+      await vesting.retrieveExcessTokens(excessTokens, {
         from: owner
       })
+      balance = await token.balanceOf.call(owner)
+      assert.equal(balance.toString(), excessTokens.toString())
     })
 
     it("Removing a vesting entry with a non-owner account", async function() {
