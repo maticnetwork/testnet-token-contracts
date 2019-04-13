@@ -56,18 +56,18 @@ contract("Token", async accounts => {
   let vesting
   let totalSupply
 
-  before(async function() {
-    totalSupply = web3.utils.toBN(10000000000)
-    totalSupply = totalSupply.mul(web3.utils.toBN(10 ** 18))
-    token = await Token.new("Matic test", "MATIC", 18, totalSupply, {
-      from: owner
-    })
-    const total = await token.totalSupply.call()
-    vesting = await Vesting.new(token.address, { from: owner })
-    await token.transfer(vesting.address, total, { from: owner })
-  })
-
   describe("Token Vesting", function() {
+    beforeEach(async function() {
+      totalSupply = web3.utils.toBN(10000000000)
+      totalSupply = totalSupply.mul(web3.utils.toBN(10 ** 18))
+      token = await Token.new("Matic test", "MATIC", 18, totalSupply, {
+        from: owner
+      })
+      const total = await token.totalSupply.call()
+      vesting = await Vesting.new(token.address, { from: owner })
+      await token.transfer(vesting.address, total, { from: owner })
+    })
+
     it("should test vesting for day zero release time", async function() {
       const vestingContractBalance = await token.balanceOf.call(vesting.address)
       assert.equal(vestingContractBalance.toString(), totalSupply.toString())
@@ -84,6 +84,7 @@ contract("Token", async accounts => {
     })
 
     it("should test token vesting for userX", async function() {
+      await vesting.release(1)
       const amount = toWei("10")
       let block = await web3.eth.getBlock("latest")
       let blockTime = block.timestamp
@@ -138,6 +139,7 @@ contract("Token", async accounts => {
     })
 
     it("Trying to remove an already released vesting entry", async function() {
+      await vesting.release(1)
       await assertRevert(
         vesting.release(1, { from: owner }),
         "Vesting already released"
@@ -145,6 +147,7 @@ contract("Token", async accounts => {
     })
 
     it("Trying to remove an already removed vesting entry", async function() {
+      await vesting.removeVesting(3)
       await assertRevert(
         vesting.removeVesting(3, { from: owner }),
         "Vesting already released"
@@ -164,8 +167,9 @@ contract("Token", async accounts => {
         })
       )
     })
+
     it("should test token vesting for amount greater then balance of vesting contract", async function() {
-      const amount = toWei((10 ** 10).toString())
+      const amount = toWei((10 ** 11).toString()) // big number then total tokens in vesting
       let block = await web3.eth.getBlock("latest")
       let blockTime = block.timestamp
       let time = new Date(blockTime)
@@ -201,7 +205,12 @@ contract("Token", async accounts => {
 
     it("should test token vesting for amount exactly equal to the balance of vesting contract", async function() {
       let p = []
-      for (let i = 4; i < 27; i++) {
+      // Time travel
+      let second = 1000
+      await increaseBlockTime(second)
+      await mineOneBlock()
+
+      for (let i = 1; i < 27; i++) {
         p.push(vesting.release(i))
       }
       await Promise.all(p)
