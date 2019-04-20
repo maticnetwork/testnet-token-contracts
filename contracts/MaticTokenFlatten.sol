@@ -1,7 +1,6 @@
+pragma solidity 0.5.2;
 
 // File: openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
-
-pragma solidity ^0.5.0;
 
 /**
  * @title ERC20 interface
@@ -26,8 +25,6 @@ interface IERC20 {
 }
 
 // File: openzeppelin-solidity/contracts/math/SafeMath.sol
-
-pragma solidity ^0.5.0;
 
 /**
  * @title SafeMath
@@ -94,10 +91,6 @@ library SafeMath {
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/ERC20.sol
-
-pragma solidity ^0.5.0;
-
-
 
 /**
  * @title Standard ERC20 token
@@ -284,8 +277,6 @@ contract ERC20 is IERC20 {
 
 // File: openzeppelin-solidity/contracts/access/Roles.sol
 
-pragma solidity ^0.5.0;
-
 /**
  * @title Roles
  * @dev Library for managing addresses assigned to a Role.
@@ -326,9 +317,6 @@ library Roles {
 }
 
 // File: openzeppelin-solidity/contracts/access/roles/PauserRole.sol
-
-pragma solidity ^0.5.0;
-
 
 contract PauserRole {
     using Roles for Roles.Role;
@@ -371,9 +359,6 @@ contract PauserRole {
 }
 
 // File: openzeppelin-solidity/contracts/lifecycle/Pausable.sol
-
-pragma solidity ^0.5.0;
-
 
 /**
  * @title Pausable
@@ -431,10 +416,6 @@ contract Pausable is PauserRole {
 
 // File: openzeppelin-solidity/contracts/token/ERC20/ERC20Pausable.sol
 
-pragma solidity ^0.5.0;
-
-
-
 /**
  * @title Pausable token
  * @dev ERC20 modified with pausable transfers.
@@ -462,9 +443,6 @@ contract ERC20Pausable is ERC20, Pausable {
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol
-
-pragma solidity ^0.5.0;
-
 
 /**
  * @title ERC20Detailed token
@@ -506,11 +484,6 @@ contract ERC20Detailed is IERC20 {
 }
 
 // File: contracts/MaticToken.sol
-
-pragma solidity 0.5.2;
-
-
-
 
 contract MaticToken is ERC20Pausable, ERC20Detailed {
     constructor (string memory name, string memory symbol, uint8 decimals, uint256 totalSupply)
