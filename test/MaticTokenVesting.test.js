@@ -71,12 +71,8 @@ contract("Token", async accounts => {
       assert.equal(vestingContractBalance.toString(), totalSupply.toString())
       let balance = await token.balanceOf.call(accounts[0])
       assert.equal(balance.toString(), "0")
-      let amount = toWei("1900000000")
       await vesting.release(1)
-      balance = await token.balanceOf.call(accounts[0])
-      assert.equal(balance.toString(), amount.toString())
-      amount = toWei((117990560 + 1900000000).toString())
-      await vesting.release(2)
+      let amount = await vesting.vestingAmount(1)
       balance = await token.balanceOf.call(accounts[0])
       assert.equal(balance.toString(), amount.toString())
     })
@@ -99,7 +95,9 @@ contract("Token", async accounts => {
       )
 
       await token.transfer(vesting.address, amount)
-      let balance = await vesting.vestingAmount(28)
+      let balance = await vesting.vestingAmount(
+        result.receipt.logs[0].args.vestingId
+      )
       assert.equal(balance.toString(), amount.toString())
 
       // "Tokens have not vested yet"
@@ -122,7 +120,7 @@ contract("Token", async accounts => {
       let result = await vesting.removeVesting(3, { from: owner })
       const excessTokens = result.receipt.logs[0].args["2"]
       let balance = await token.balanceOf.call(owner)
-      assert.equal(balance.toString(), '0')
+      assert.equal(balance.toString(), "0")
 
       await vesting.retrieveExcessTokens(excessTokens, {
         from: owner
@@ -137,7 +135,7 @@ contract("Token", async accounts => {
 
     it("Trying to remove an unexistent vesting entry", async function() {
       await assertRevert(
-        vesting.removeVesting(30, { from: owner }),
+        vesting.removeVesting(40, { from: owner }),
         "Invalid vesting id"
       )
     })
@@ -210,18 +208,18 @@ contract("Token", async accounts => {
     it("should test token vesting for amount exactly equal to the balance of vesting contract", async function() {
       let p = []
       // Time travel
-      let second = 1000
+      let second = 10000 * 1279 * 60
       await increaseBlockTime(second)
       await mineOneBlock()
 
-      for (let i = 1; i < 27; i++) {
+      for (let i = 1; i < 35; i++) {
         p.push(vesting.release(i))
       }
       await Promise.all(p)
       let balanceOfVesting = await token.balanceOf(vesting.address)
-      const vestingAmount = await vesting.vestingAmount(27)
+      const vestingAmount = await vesting.vestingAmount(35)
       assert.equal(balanceOfVesting.toString(), vestingAmount.toString())
-      await vesting.release(27)
+      await vesting.release(35)
       balanceOfVesting = await token.balanceOf(vesting.address)
       assert.equal(balanceOfVesting.toString(), "0")
     })
