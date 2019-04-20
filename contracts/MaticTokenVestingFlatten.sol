@@ -1,7 +1,6 @@
+pragma solidity 0.5.2;
 
 // File: openzeppelin-solidity/contracts/ownership/Ownable.sol
-
-pragma solidity ^0.5.0;
 
 /**
  * @title Ownable
@@ -76,8 +75,6 @@ contract Ownable {
 
 // File: openzeppelin-solidity/contracts/math/SafeMath.sol
 
-pragma solidity ^0.5.0;
-
 /**
  * @title SafeMath
  * @dev Unsigned math operations with safety checks that revert on error
@@ -144,8 +141,6 @@ library SafeMath {
 
 // File: openzeppelin-solidity/contracts/token/ERC20/IERC20.sol
 
-pragma solidity ^0.5.0;
-
 /**
  * @title ERC20 interface
  * @dev see https://github.com/ethereum/EIPs/issues/20
@@ -169,10 +164,6 @@ interface IERC20 {
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol
-
-pragma solidity ^0.5.0;
-
-
 
 /**
  * @title SafeERC20
@@ -211,13 +202,6 @@ library SafeERC20 {
 }
 
 // File: contracts/MaticTokenVesting.sol
-
-pragma solidity 0.5.2;
-
-
-
-
-
 
 /**
  * @title TokenVesting
