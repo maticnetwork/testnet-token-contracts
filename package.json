@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 13000000",
+    "testrpc": "ganache-cli --mnemonic 'clock radar mass judge dismiss just intact mind resemble fringe diary casino' --gasLimit 8000000",
     "truffle": "truffle",
     "truffle:test": " truffle test test/*.test.js",
     "truffle:deploy": "truffle deploy"
@@ -30,6 +30,7 @@
     "truffle-hdwallet-provider": "1.0.5"
   },
   "devDependencies": {
+    "bluebird": "^3.5.5",
     "chai": "^4.2.0",
     "chai-bignumber": "^3.0.0",
     "ganache-cli": "6.2.4"

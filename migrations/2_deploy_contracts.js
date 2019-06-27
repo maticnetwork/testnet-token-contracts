@@ -1,5 +1,6 @@
-const Token = artifacts.require("./MaticToken.sol")
-const TokenVesting = artifacts.require("./MaticTokenVesting.sol")
+const Token = artifacts.require("MaticToken")
+const TokenVesting = artifacts.require("MaticTokenVesting")
+const TokenAirdrop = artifacts.require("MaticTokenAirdrop")
 
 module.exports = async function(deployer) {
   deployer.then(async () => {
@@ -16,5 +17,7 @@ module.exports = async function(deployer) {
     await deployer.deploy(TokenVesting, Token.address)
     const tokenContract = await Token.deployed()
     await tokenContract.transfer(TokenVesting.address, totalSupply)
+
+    await deployer.deploy(TokenAirdrop, Token.address)
   })
 }
