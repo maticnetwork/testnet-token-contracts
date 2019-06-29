@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "bip39": "2.5.0",
+    "csv-parser": "^2.3.0",
     "eth-decoder": "0.0.1-beta.2",
     "eth-gas-reporter": "0.1.12",
     "eth-sig-util": "2.1.1",

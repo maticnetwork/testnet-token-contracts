@@ -1,12 +1,13 @@
+const crypto = require('crypto')
+const bluebird = require('bluebird')
+const abiDecoder = require('abi-decoder')
+const parseCsv = require('./utils').parseCsv
+
 const Token = artifacts.require("./contracts/MaticToken.sol")
 const Airdrop = artifacts.require("./contracts/MaticTokenAirdrop.sol")
 const BigNumber = web3.utils.BigNumber
 
-const crypto = require('crypto')
-const bluebird = require('bluebird')
-const abiDecoder = require('abi-decoder')
 abiDecoder.addABI(Token._json.abi);
-const NUM_RECIPIENTS = 200
 
 require("chai")
   .use(require("chai-bignumber")(BigNumber))
@@ -24,9 +25,48 @@ contract.only("MaticTokenAirdrop", async function(accounts) {
     airdrop = await Airdrop.new(token.address, { from: owner })
   })
 
-  it("should airdrop", async function() {
+  it("should airdrop from test data", async function() {
+    const NUM_RECIPIENTS = 200
     let { recipients, amounts, airdropSupply } = buildTestData(NUM_RECIPIENTS)
     // console.log(recipients, amounts, airdropSupply.toString())
+    airdropSupply = web3.utils.toBN(airdropSupply).mul(SCALING_FACTOR)
+
+    // transfer tokens to the contract for airdrop
+    await token.transfer(airdrop.address, airdropSupply, { from: owner })
+    let airdropContractBalance = await token.balanceOf.call(airdrop.address)
+    assert.ok(airdropContractBalance.eq(airdropSupply), 'airdropSupply assertion failed')
+
+    // assert initial user balances are 0
+    await bluebird.map(recipients, async recipient => {
+      let balance = await token.balanceOf.call(recipient)
+      assert.equal(balance.toString(), '0')
+    })
+
+    const tx = await airdrop.airdropTokens(recipients, amounts)
+    const decodedLogs = abiDecoder.decodeLogs(tx.receipt.rawLogs);
+    assert.equal(decodedLogs.length, NUM_RECIPIENTS)
+
+    // check balances and emitted events
+    for(let i = 0; i < NUM_RECIPIENTS; i++) {
+      assert.equal(decodedLogs[i].name, 'Transfer')
+      assert.equal(decodedLogs[i].address.toLowerCase(), token.address.toLowerCase()) // contract
+      assert.equal(decodedLogs[i].events[0].value.toLowerCase(), airdrop.address.toLowerCase()) // from
+      assert.equal(decodedLogs[i].events[1].value.toLowerCase(), recipients[i].toLowerCase()) // to
+      assert.equal(decodedLogs[i].events[2].value, amounts[i].mul(SCALING_FACTOR).toString()) // value
+
+      let balance = await token.balanceOf.call(recipients[i])
+      assert.ok(balance.eq(amounts[i].mul(SCALING_FACTOR)), 'Balance assertion failed')
+    }
+    airdropContractBalance = await token.balanceOf.call(airdrop.address)
+    assert.ok(airdropContractBalance.eq(web3.utils.toBN(0)), 'did not exhaust all tokens')
+
+    console.log('gasUsed', tx.receipt.gasUsed)
+  })
+
+  it("should airdrop from csv", async function() {
+    let { recipients, amounts, airdropSupply } = await parseCsv()
+    let NUM_RECIPIENTS = recipients.length
+    // console.log({ recipients, amounts, airdropSupply: airdropSupply.toString() })
     airdropSupply = web3.utils.toBN(airdropSupply).mul(SCALING_FACTOR)
 
     // transfer tokens to the contract for airdrop
@@ -86,7 +126,6 @@ function buildTestData(n) {
     airdropSupply = airdropSupply.add(amount)
     amounts.push(amount)
   }
-
   return { recipients, amounts, airdropSupply }
 }
 
