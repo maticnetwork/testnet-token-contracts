@@ -1,10 +1,13 @@
-const Token = artifacts.require("./MaticToken.sol")
-const TokenVesting = artifacts.require("./MaticTokenVesting.sol")
+const Token = artifacts.require("MaticToken")
+// const TokenVesting = artifacts.require("MaticTokenVesting")
+const TokenAirdrop = artifacts.require("MaticTokenAirdrop")
+const SCALING_FACTOR = web3.utils.toBN(10 ** 18)
 
 module.exports = async function(deployer) {
-  deployer.then(async () => {
+  deployer
+  .then(async () => {
     let totalSupply = web3.utils.toBN(10000000000)
-    totalSupply = totalSupply.mul(web3.utils.toBN(10 ** 18))
+    totalSupply = totalSupply.mul(SCALING_FACTOR)
 
     await deployer.deploy(
       Token,
@@ -13,8 +16,13 @@ module.exports = async function(deployer) {
       18,
       totalSupply
     )
-    await deployer.deploy(TokenVesting, Token.address)
+    // await deployer.deploy(TokenVesting, Token.address)
+    // const tokenContract = await Token.deployed()
+    // await tokenContract.transfer(TokenVesting.address, totalSupply)
+  })
+  .then(async () => {
     const tokenContract = await Token.deployed()
-    await tokenContract.transfer(TokenVesting.address, totalSupply)
+    await deployer.deploy(TokenAirdrop, Token.address)
+    await tokenContract.transfer(TokenAirdrop.address, web3.utils.toBN(48198).mul(SCALING_FACTOR))
   })
 }
