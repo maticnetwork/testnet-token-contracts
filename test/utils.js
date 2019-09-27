@@ -15,7 +15,8 @@ function parseCsv(web3) {
           let recipient = r.deposit_address.trim().toLowerCase()
           if (recipient.length == 42) {
             if (!totalTokensForEachUser[recipient]) totalTokensForEachUser[recipient] = 0
-            let amount = parseInt(r.num_tokens.trim())
+            let amount = parseInt(r.num_tokens.trim().replace(',', '')) // replace comma from amount
+            console.log(amount, r.num_tokens)
             totalTokensForEachUser[recipient] += amount
             airdropSupply += amount
           } else {

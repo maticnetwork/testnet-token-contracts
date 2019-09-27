@@ -35,7 +35,7 @@ module.exports = {
       provider: function() {
         return new HDWalletProvider(
           MNEMONIC,
-          `https://mainnet.infura.io/${API_KEY}`
+          `https://mainnet.infura.io/v3/${API_KEY}`
         )
       },
       network_id: 1,
