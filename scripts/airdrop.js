@@ -10,17 +10,16 @@ async function fireTx() {
   console.log(recipients, amounts.map(a => a.toString()), airdropSupply)
   const airdrop = await Airdrop.at(process.env.AIRDROP_CONTRACT)
   const token = await Token.at(process.env.TOKEN_CONTRACT)
-
   airdropSupply = web3.utils.toBN(airdropSupply).mul(SCALING_FACTOR)
   let airdropContractBalance = await token.balanceOf.call(airdrop.address)
   console.log('airdropContractBalance', airdropContractBalance.toString())
   assert.ok(airdropContractBalance.gte(airdropSupply), 'airdropContractBalance is less than airdropSupply')
 
-  const gasEstimate = await airdrop.airdropTokens.estimateGas(recipients, amounts)
+  const gasEstimate = await airdrop.airdropTokens.estimateGas(process.env.TOKEN_CONTRACT, recipients, amounts)
   console.log('gasEstimate', gasEstimate)
-  return airdrop.airdropTokens(recipients, amounts, {
+  return airdrop.airdropTokens(process.env.TOKEN_CONTRACT, recipients, amounts, {
     gas: gasEstimate + 10000,
-    gasPrice: web3.utils.toWei('1', 'gwei')
+    gasPrice: web3.utils.toWei('15', 'gwei')
   })
 }
 

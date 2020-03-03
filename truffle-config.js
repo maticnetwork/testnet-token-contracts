@@ -6,7 +6,7 @@ module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
   networks: {
-    test: {
+    development: {
       host: "localhost",
       port: 8545,
       network_id: "*" // match any network
@@ -29,7 +29,9 @@ module.exports = {
         )
       },
       network_id: 3,
-      gas: 8000000
+      gas: 7000000,
+      gasPrice: 15000000000, // 15 gwei
+      skipDryRun: true
     },
     mainnet: {
       provider: function() {

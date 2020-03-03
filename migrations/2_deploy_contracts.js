@@ -22,7 +22,7 @@ module.exports = async function(deployer) {
   })
   .then(async () => {
     const tokenContract = await Token.deployed()
-    await deployer.deploy(TokenAirdrop, Token.address)
+    await deployer.deploy(TokenAirdrop)
     await tokenContract.transfer(TokenAirdrop.address, web3.utils.toBN(48198).mul(SCALING_FACTOR))
   })
 }
